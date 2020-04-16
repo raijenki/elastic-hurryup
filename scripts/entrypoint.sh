@@ -5,9 +5,9 @@ export IP=localhost
 export SEARCH_DRIVER=Ziphian.java
 #Read local IP
 export TERMS_FILE=terms_ordered
-export RAMP_UP=90
-export RAMP_DOWN=90
-export STEADY_STATE=180
+export RAMP_UP=60
+export RAMP_DOWN=60
+export STEADY_STATE=1200
 export SCALE=50
 export AGENT_ID=1
 export HOST_IP=localhost
@@ -68,4 +68,4 @@ until $(curl --output /dev/null --silent --head --fail http://localhost:9200); d
 	sleep 3s
 
 	#Output summary
-	cat $FABAN_OUTPUT_DIR/1/summary.xml
+	#cat $FABAN_OUTPUT_DIR/1/summary.xml
