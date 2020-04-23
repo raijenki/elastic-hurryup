@@ -1,0 +1,1 @@
+./build/server/bin/elasticsearch
