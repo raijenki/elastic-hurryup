@@ -57,11 +57,26 @@ import java.util.Random;
     mix = { 100 },
     deviation = 0
 )
-@NegativeExponential (
+
+@Uniform (
+	cycleType = CycleType.CYCLETIME,
+	cycleMin = 1000,
+	cycleMax = 1000,
+	cycleDeviation = 2
+)
+
+/*@Uniform (
+	cycleType = CycleType.CYCLETIME,
+	cycleMin = 1000,
+	cycleMax = 10000,
+	cycleDeviation = 2
+)*/
+
+/*@NegativeExponential (
     cycleType = CycleType.CYCLETIME,
     cycleMean = 2000,
     cycleDeviation = 2
-)
+)*/
 
 public class SearchDriver {
     private DriverContext ctx;
@@ -209,11 +224,14 @@ public class SearchDriver {
         String lat = p2[1];
 	FileWriter fstreamIN = new FileWriter("/home/cc/elastic-hurryup/db/log.txt",true);
         BufferedWriter out = new BufferedWriter(fstreamIN);
-    	out.write(tstamp0+","+tstamp1+","+query+","+lat+"\n");
+	Thread currentThread = Thread.currentThread();
+	String tid = Long.toString(currentThread.getId());
+	out.write(tid + "," + tstamp0 + "," + tstamp1 + "," + query + "," + lat + "\n");
 	out.close();
-
-        
-/*	try {
+	/*try {
+	Thread.sleep(2000);
+	} catch(InterruptedException ie) { System.err.println("Thread sleep error!"); }
+*//*	try {
 	int numb = http.readURL(url);
 	if (numb<=0) {
 		logger.severe("ERROR ZERO!\n");
