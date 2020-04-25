@@ -2,23 +2,23 @@
 <?xml-stylesheet type="text/xsl" href="../../xslt/summary_report.xsl"?>
 <benchResults>
     <benchSummary name="Sample Search Workload" version="0.3">
-        <runId>51</runId>
-        <startTime>Fri Apr 24 00:04:40 UTC 2020</startTime>
-        <endTime>Fri Apr 24 00:26:40 UTC 2020</endTime>
-        <metric unit="ops/sec">2.476</metric>
+        <runId>37</runId>
+        <startTime>Sat Apr 18 12:48:28 UTC 2020</startTime>
+        <endTime>Sat Apr 18 13:10:28 UTC 2020</endTime>
+        <metric unit="ops/sec">2.283</metric>
         <passed>false</passed>
     </benchSummary>
     <driverSummary name="SearchDriver">
-        <metric unit="ops/sec">2.476</metric>
-        <startTime>Fri Apr 24 00:04:40 UTC 2020</startTime>
-        <endTime>Fri Apr 24 00:26:40 UTC 2020</endTime>
-        <totalOps unit="operations">2971</totalOps>
+        <metric unit="ops/sec">2.283</metric>
+        <startTime>Sat Apr 18 12:48:28 UTC 2020</startTime>
+        <endTime>Sat Apr 18 13:10:28 UTC 2020</endTime>
+        <totalOps unit="operations">2740</totalOps>
         <users>5</users>
-        <rtXtps>4.9728</rtXtps>
+        <rtXtps>4.9880</rtXtps>
         <passed>false</passed>
         <mix allowedDeviation="0.0000">
             <operation name="GET">
-                <successes>2971</successes>
+                <successes>2740</successes>
                 <failures>0</failures>
                 <mix>1.0000</mix>
                 <requiredMix>1.0000</requiredMix>
@@ -27,21 +27,21 @@
         </mix>
         <responseTimes unit="seconds">
             <operation name="GET" r90th="0.500">
-                <avg>0.178</avg>
-                <max>2.375</max>
-                <sd>0.255</sd>
-                <p90th>0.505</p90th>
+                <avg>0.726</avg>
+                <max>5.911</max>
+                <sd>0.698</sd>
+                <p90th>1.450</p90th>
                 <passed>false</passed>
-                <p99th>1.175</p99th>
+                <p99th>&gt; 2.475</p99th>
             </operation>
         </responseTimes>
         <delayTimes>
             <operation name="GET" type="cycleTime">
-                <targetedAvg>1.994</targetedAvg>
-                <actualAvg>2.012</actualAvg>
-                <min>0.004</min>
+                <targetedAvg>1.991</targetedAvg>
+                <actualAvg>2.185</actualAvg>
+                <min>0.028</min>
                 <max>10.000</max>
-                <passed>true</passed>
+                <passed>false</passed>
             </operation>
         </delayTimes>
     </driverSummary>
