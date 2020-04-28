@@ -99,7 +99,7 @@ void hurryup_tick()
 				std::get<2>(*it) = ct_item.timestamp;
 
 				// If dif is bigger than 250ms or 250000us, then change freq to 2.6GHz
-				if(std::get<3>(*it) > 250000) {
+				if(std::get<3>(*it) > 500000) {
 					//std::cout << "Freq change to 2.6ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
