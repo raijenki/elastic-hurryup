@@ -49,7 +49,7 @@ static void load_method_ids(jvmtiEnv *jvmti, jclass klass)
     }
     else
     {
-        fprintf(stderr, "hurryup_jvmti: load_method_ids failed (%p) (%d)\n", methods, err);
+        fprintf(stderr, "hurryup_jvmti: load_method_ids failed (%d)\n", err);
     }
 }
 

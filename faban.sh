@@ -61,11 +61,14 @@ until $(curl --output /dev/null --silent --head --fail http://localhost:9200); d
 
 	#START Agent
 	numactl --cpunodebind=1 $JAVA_HOME/bin/java -classpath $CLASSPATH -Xmx$CLIENT_HEAP_SIZE -Xms$CLIENT_HEAP_SIZE -Djava.security.policy=$POLICY_PATH com.sun.faban.driver.engine.AgentImpl "SearchDriver" $AGENT_ID $HOST_IP &
-
+	
+	energyStart=$(cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj)
 	#START Master
 	numactl --cpunodebind=1 $JAVA_HOME/bin/java -classpath $CLASSPATH -Xmx$CLIENT_HEAP_SIZE -Xms$CLIENT_HEAP_SIZE -Djava.security.policy=$POLICY_PATH -Dbenchmark.config=$BENCHMARK_CONFIG com.sun.faban.driver.engine.MasterImpl
-
+	
+	energyEnd=$(cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj)
 	sleep 3s
-
+	consumption=$((energyEnd - energyStart))
+	echo "$consumption" >> /home/cc/elastic-hurryup/db/energy.txt
 	#Output summary
 	#cat $FABAN_OUTPUT_DIR/1/summary.xml
