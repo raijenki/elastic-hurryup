@@ -31,7 +31,7 @@ void hurryup_init()
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(20ms);
+            std::this_thread::sleep_for(100ms);
             hurryup_tick();
         }
 
@@ -99,7 +99,7 @@ void hurryup_tick()
 				std::get<2>(*it) = ct_item.timestamp;
 
 				// If dif is bigger than 250ms or 250000us, then change freq to 2.6GHz
-				if(std::get<3>(*it) > 500000) {
+				if(std::get<3>(*it) > 250000000) {
 					//std::cout << "Freq change to 2.6ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
