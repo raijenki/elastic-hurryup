@@ -52,11 +52,19 @@ void hurryup_freqchange(int coreid, int hotcalls) {
 
 	std::ofstream ofs(dir, std::ofstream::trunc);
 
-	if(hotcalls == 1) {
-		ofs << "2600000";
-	} else {
+	if(hotcalls == 0) {
 		ofs << "1000000";
-	}
+	} else if (hotcalls == 1) {
+		ofs << "1300000";
+	} else if (hotcalls == 2) {
+		ofs << "1700000";
+	} else if (hotcalls == 3) {
+		ofs << "2000000";
+	} else if (hotcalls == 4) {
+		ofs << "2300000";
+	} else if (hotcalls == 5) {
+		ofs << "2600000";
+	}	
 	ofs.close();
 }
 
@@ -98,9 +106,22 @@ void hurryup_tick()
 				std::get<3>(*it) = std::get<3>(*it) + (ct_item.timestamp - std::get<2>(*it));
 				std::get<2>(*it) = ct_item.timestamp;
 
-				// If dif is bigger than 250ms or 250000us, then change freq to 2.6GHz
-				if(std::get<3>(*it) > 300000000) {
-					//std::cout << "Freq change to 2.6ghz: core " << ct_item.cpu_id << std::endl;
+				// If dif is bigger than 200ms, change fre according:wq
+
+				if(std::get<3>(*it) > 600000000) {
+					hurryup_freqchange(ct_item.cpu_id, 5);
+				}
+				else if(std::get<3>(*it) > 500000000) {
+					hurryup_freqchange(ct_item.cpu_id, 4);
+				}
+				else if(std::get<3>(*it) > 400000000) {
+					hurryup_freqchange(ct_item.cpu_id, 3);
+				}
+				else if(std::get<3>(*it) > 300000000) {
+					hurryup_freqchange(ct_item.cpu_id, 2);
+				}
+				else if(std::get<3>(*it) > 200000000) {
+					//std::cout << "Freq change to 1.3ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
 
