@@ -108,7 +108,7 @@ void hurryup_tick()
 
 				// If dif is bigger than 200ms, change fre according:wq
 
-				if(std::get<3>(*it) > 90000000) {
+				if(std::get<3>(*it) > 900000000) {
 					hurryup_freqchange(ct_item.cpu_id, 5);
 				}
 				else if(std::get<3>(*it) > 700000000) {
