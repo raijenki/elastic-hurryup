@@ -31,7 +31,7 @@ void hurryup_init()
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(50ms);
+            std::this_thread::sleep_for(20ms);
             hurryup_tick();
         }
 
@@ -108,19 +108,19 @@ void hurryup_tick()
 
 				// If dif is bigger than 200ms, change fre according:wq
 
-				if(std::get<3>(*it) > 900000000) {
+				if(std::get<3>(*it) > 814000000) {
 					hurryup_freqchange(ct_item.cpu_id, 5);
 				}
-				else if(std::get<3>(*it) > 700000000) {
+				else if(std::get<3>(*it) > 663000000) {
 					hurryup_freqchange(ct_item.cpu_id, 4);
 				}
-				else if(std::get<3>(*it) > 550000000) {
+				else if(std::get<3>(*it) > 534000000) {
 					hurryup_freqchange(ct_item.cpu_id, 3);
 				}
-				else if(std::get<3>(*it) > 400000000) {
+				else if(std::get<3>(*it) > 396000000) {
 					hurryup_freqchange(ct_item.cpu_id, 2);
 				}
-				else if(std::get<3>(*it) > 250000000) {
+				else if(std::get<3>(*it) > 233000000) {
 					//std::cout << "Freq change to 1.3ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
