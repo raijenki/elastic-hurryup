@@ -2,19 +2,19 @@
 <?xml-stylesheet type="text/xsl" href="../../xslt/summary_report.xsl"?>
 <benchResults>
     <benchSummary name="Sample Search Workload" version="0.3">
-        <runId>81</runId>
-        <startTime>Wed Apr 29 00:34:49 UTC 2020</startTime>
-        <endTime>Wed Apr 29 00:56:49 UTC 2020</endTime>
+        <runId>88</runId>
+        <startTime>Wed Apr 29 23:21:24 UTC 2020</startTime>
+        <endTime>Wed Apr 29 23:43:25 UTC 2020</endTime>
         <metric unit="ops/sec">8.003</metric>
         <passed>true</passed>
     </benchSummary>
     <driverSummary name="SearchDriver">
         <metric unit="ops/sec">8.003</metric>
-        <startTime>Wed Apr 29 00:34:49 UTC 2020</startTime>
-        <endTime>Wed Apr 29 00:56:49 UTC 2020</endTime>
+        <startTime>Wed Apr 29 23:21:24 UTC 2020</startTime>
+        <endTime>Wed Apr 29 23:43:25 UTC 2020</endTime>
         <totalOps unit="operations">9603</totalOps>
         <users>8</users>
-        <rtXtps>7.9922</rtXtps>
+        <rtXtps>7.9927</rtXtps>
         <passed>true</passed>
         <mix allowedDeviation="0.0000">
             <operation name="GET">
@@ -27,20 +27,20 @@
         </mix>
         <responseTimes unit="seconds">
             <operation name="GET" r90th="0.500">
-                <avg>0.155</avg>
-                <max>1.297</max>
-                <sd>0.182</sd>
+                <avg>0.153</avg>
+                <max>1.827</max>
+                <sd>0.183</sd>
                 <p90th>0.430</p90th>
                 <passed>true</passed>
-                <p99th>0.725</p99th>
+                <p99th>0.748</p99th>
             </operation>
         </responseTimes>
         <delayTimes>
             <operation name="GET" type="cycleTime">
                 <targetedAvg>1.000</targetedAvg>
-                <actualAvg>0.999</actualAvg>
+                <actualAvg>1.000</actualAvg>
                 <min>0.999</min>
-                <max>1.298</max>
+                <max>1.828</max>
                 <passed>true</passed>
             </operation>
         </delayTimes>

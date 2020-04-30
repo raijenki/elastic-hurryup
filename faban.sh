@@ -61,14 +61,14 @@ until $(curl --output /dev/null --silent --head --fail http://localhost:9200); d
 
 	#START Agent
 	numactl --cpunodebind=1 $JAVA_HOME/bin/java -classpath $CLASSPATH -Xmx$CLIENT_HEAP_SIZE -Xms$CLIENT_HEAP_SIZE -Djava.security.policy=$POLICY_PATH com.sun.faban.driver.engine.AgentImpl "SearchDriver" $AGENT_ID $HOST_IP &
-	
-	energyStart=$(cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj)
+	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table >> /home/cc/elastic-hurryup/db/transtable_init.txt
+	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state >> /home/cc/elastic-hurryup/db/time_in_state_init.txt
+	cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj >> /home/cc/elastic-hurryup/db/energy.txt
 	#START Master
 	numactl --cpunodebind=1 $JAVA_HOME/bin/java -classpath $CLASSPATH -Xmx$CLIENT_HEAP_SIZE -Xms$CLIENT_HEAP_SIZE -Djava.security.policy=$POLICY_PATH -Dbenchmark.config=$BENCHMARK_CONFIG com.sun.faban.driver.engine.MasterImpl
-	
-	energyEnd=$(cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj)
+	cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj >> /home/cc/elastic-hurryup/db/energy.txt
+	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table >> /home/cc/elastic-hurryup/db/transtable_end.txt
+	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state >> /home/cc/elastic-hurryup/db/time_in_state_end.txt
 	sleep 3s
-	consumption=$((energyEnd - energyStart))
-	echo "$consumption" >> /home/cc/elastic-hurryup/db/energy.txt
 	#Output summary
 	#cat $FABAN_OUTPUT_DIR/1/summary.xml
