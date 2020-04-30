@@ -108,19 +108,19 @@ void hurryup_tick()
 
 				// If dif is bigger than 200ms, change fre according:wq
 
-				if(std::get<3>(*it) > 700000000) {
+				if(std::get<3>(*it) > 90000000) {
 					hurryup_freqchange(ct_item.cpu_id, 5);
 				}
-				else if(std::get<3>(*it) > 600000000) {
+				else if(std::get<3>(*it) > 700000000) {
 					hurryup_freqchange(ct_item.cpu_id, 4);
 				}
-				else if(std::get<3>(*it) > 500000000) {
+				else if(std::get<3>(*it) > 550000000) {
 					hurryup_freqchange(ct_item.cpu_id, 3);
 				}
 				else if(std::get<3>(*it) > 400000000) {
 					hurryup_freqchange(ct_item.cpu_id, 2);
 				}
-				else if(std::get<3>(*it) > 300000000) {
+				else if(std::get<3>(*it) > 250000000) {
 					//std::cout << "Freq change to 1.3ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
