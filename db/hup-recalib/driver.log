@@ -1,20 +1,20 @@
-Apr 30, 2020 10:51:24 PM com.sun.faban.driver.engine.MasterImpl configureAgents
+Apr 30, 2020 11:58:46 PM com.sun.faban.driver.engine.MasterImpl configureAgents
 INFO: Configuring 1 SearchDriverAgents...
-Apr 30, 2020 10:51:28 PM com.sun.faban.driver.engine.MasterImpl executeRun
-INFO: Started all threads; run commences in 2999 ms
-Apr 30, 2020 10:52:31 PM com.sun.faban.driver.engine.MasterImpl executeRun
+Apr 30, 2020 11:58:51 PM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Started all threads; run commences in 2997 ms
+Apr 30, 2020 11:59:54 PM com.sun.faban.driver.engine.MasterImpl executeRun
 INFO: Ramp up completed
-Apr 30, 2020 11:12:31 PM com.sun.faban.driver.engine.MasterImpl executeRun
+May 01, 2020 12:19:54 AM com.sun.faban.driver.engine.MasterImpl executeRun
 INFO: Steady state completed
-Apr 30, 2020 11:13:31 PM com.sun.faban.driver.engine.MasterImpl executeRun
+May 01, 2020 12:20:54 AM com.sun.faban.driver.engine.MasterImpl executeRun
 INFO: Ramp down completed
-Apr 30, 2020 11:13:31 PM com.sun.faban.driver.engine.MasterImpl getDriverMetrics
+May 01, 2020 12:20:54 AM com.sun.faban.driver.engine.MasterImpl getDriverMetrics
 INFO: Gathering SearchDriverStats ...
-Apr 30, 2020 11:13:31 PM com.sun.faban.driver.engine.MasterImpl generateReports
+May 01, 2020 12:20:54 AM com.sun.faban.driver.engine.MasterImpl generateReports
 INFO: Printing Summary report ...
-Apr 30, 2020 11:13:31 PM com.sun.faban.driver.engine.MasterImpl generateReports
+May 01, 2020 12:20:54 AM com.sun.faban.driver.engine.MasterImpl generateReports
 INFO: Summary finished. Now printing detail ...
-Apr 30, 2020 11:13:31 PM com.sun.faban.driver.engine.MasterImpl generateReports
-INFO: Detail finished. Results written to /home/cc/elastic-hurryup/db/96.
-Apr 30, 2020 11:13:31 PM com.sun.faban.driver.engine.MasterImpl generateReports
-INFO: Hash of generated summary.xml file [bfc69vjPWPXuNl/OzKh3AplXTXJOcQy2h6DYUEkXgDt4J+sFMDjT6zAndBjabGvBGh2lYVNzww3sFzDwfL0jrg==]
+May 01, 2020 12:20:54 AM com.sun.faban.driver.engine.MasterImpl generateReports
+INFO: Detail finished. Results written to /home/cc/elastic-hurryup/db/97.
+May 01, 2020 12:20:54 AM com.sun.faban.driver.engine.MasterImpl generateReports
+INFO: Hash of generated summary.xml file [xSveZbmSOnXSR6tkqWKj6jTYNaFHrKTqFBP23FyYeQuiTwHvo6yy/naanjf/Ip9Aljq43BtCOO5SvSrro6ZC1g==]
