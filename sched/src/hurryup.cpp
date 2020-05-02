@@ -52,7 +52,7 @@ void hurryup_freqchange(int coreid, int hotcalls) {
 
 	std::ofstream ofs(dir, std::ofstream::trunc);
 
-	if(hotcalls == 0) {
+	if(hotcalls >= 0) {
 		ofs << "1000000";
 	} else if (hotcalls == 1) {
 		ofs << "1300000";
@@ -83,7 +83,7 @@ void hurryup_tick()
 		// Check if the thread is running on another processor from the previous one
 		if(ct_item.cpu_id != std::get<1>(*it)) {
 				// Set previous processor as 1.0GHz frequency
-				//hurryup_freqchange(std::get<1>(*it), 0);
+				hurryup_freqchange(std::get<1>(*it), 0);
 				// Update tuple
 				std::get<1>(*it) = ct_item.cpu_id;
 				// It changed processors so we put 'dif' as zero and update timestamp
@@ -95,7 +95,7 @@ void hurryup_tick()
 			// Check if hotpath is zero
 			if(ct_item.is_hotpath == 0) {
 			// Don't even bother, change freq to 1.0GHz and update tuple
-				//hurryup_freqchange(ct_item.cpu_id, 0);
+				hurryup_freqchange(ct_item.cpu_id, 0);
 				//std::cout << "Freq change to 1.0ghz: core " << ct_item.cpu_id << std::endl;
 				std::get<2>(*it) = ct_item.timestamp;
 				std::get<3>(*it) = 0;
@@ -109,20 +109,20 @@ void hurryup_tick()
 				// If dif is bigger than 200ms, change fre according:wq
 
 				if(std::get<3>(*it) > 900000000) {
-					//hurryup_freqchange(ct_item.cpu_id, 5);
+					hurryup_freqchange(ct_item.cpu_id, 5);
 				}
 				else if(std::get<3>(*it) > 800000000) {
-					//hurryup_freqchange(ct_item.cpu_id, 4);
+					hurryup_freqchange(ct_item.cpu_id, 4);
 				}
 				else if(std::get<3>(*it) > 750000000) {
-					//hurryup_freqchange(ct_item.cpu_id, 3);
+					hurryup_freqchange(ct_item.cpu_id, 3);
 				}
 				else if(std::get<3>(*it) > 220000000) {
-					//hurryup_freqchange(ct_item.cpu_id, 2);
+					hurryup_freqchange(ct_item.cpu_id, 2);
 				}
 				else if(std::get<3>(*it) > 150000000) {
 					//std::cout << "Freq change to 1.3ghz: core " << ct_item.cpu_id << std::endl;
-					//hurryup_freqchange(ct_item.cpu_id, 1);
+					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
 
 			}
@@ -137,7 +137,7 @@ void hurryup_tick()
 		//Create new tuple into vector
 	        es_threads.push_back(std::make_tuple(ct_item.thread_id, ct_item.cpu_id, ct_item.timestamp, 0));
 		//Set coreid to 1.0 GHz by default
-		//hurryup_freqchange(ct_item.cpu_id, 0);
+		hurryup_freqchange(ct_item.cpu_id, 0);
 	}
 
       /*fprintf(stderr, "hurryup_jvmti: timestamp=%lu tid=%d cpu=%d is_hotpath=%d, i=%d",
