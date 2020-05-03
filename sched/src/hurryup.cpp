@@ -145,19 +145,19 @@ void hurryup_tick()
 				std::get<3>(*it) = std::get<3>(*it) + (ct_item.timestamp - std::get<2>(*it));
 				std::get<2>(*it) = ct_item.timestamp;
 
-				if(std::get<3>(*it) > 900000000) {
+				if(std::get<3>(*it) > 850000000) {
 					hurryup_freqchange(ct_item.cpu_id, 5);
 				}
-				else if(std::get<3>(*it) > 800000000) {
+				else if(std::get<3>(*it) > 700000000) {
 					hurryup_freqchange(ct_item.cpu_id, 4);
 				}
 				else if(std::get<3>(*it) > 550000000) {
 					hurryup_freqchange(ct_item.cpu_id, 3);
 				}
-				else if(std::get<3>(*it) > 250000000) {
+				else if(std::get<3>(*it) > 400000000) {
 					hurryup_freqchange(ct_item.cpu_id, 2);
 				}
-				else if(std::get<3>(*it) > 150000000) {
+				else if(std::get<3>(*it) > 300000000) {
 					//std::cout << "Freq change to 1.3ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
 				}
