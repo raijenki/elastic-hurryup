@@ -76,7 +76,7 @@ void hurryup_freqchange(int coreid, int hotcalls) {
 
 	//std::ofstream ofs(dir, std::ofstream::trunc);
 
-	if(hotcalls == 0) {
+	if(hotcalls >= 0) {
 		char freq[8] = "1000000";
 		write(fd[coreid], freq, strlen(freq));
 		//ofs << "1000000";
