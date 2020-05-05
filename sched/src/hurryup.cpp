@@ -148,7 +148,7 @@ void hurryup_tick()
 				if(std::get<3>(*it) > 1000000000) {
 					hurryup_freqchange(ct_item.cpu_id, 5);
 				}
-				else if(std::get<3>(*it) > 700000000) {
+				/*else if(std::get<3>(*it) > 700000000) {
 					hurryup_freqchange(ct_item.cpu_id, 4);
 				}
 				else if(std::get<3>(*it) > 550000000) {
@@ -160,7 +160,7 @@ void hurryup_tick()
 				else if(std::get<3>(*it) > 200000000) {
 					//std::cout << "Freq change to 1.3ghz: core " << ct_item.cpu_id << std::endl;
 					hurryup_freqchange(ct_item.cpu_id, 1);
-				}
+				}*/
 
 			}
 		//}
