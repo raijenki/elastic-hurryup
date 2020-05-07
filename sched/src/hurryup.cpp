@@ -19,7 +19,7 @@
 static std::thread scheduling_thread;
 int fd[24];
 int changes[24];
-std::vector<std::tuple<int,int,int,int>> es_threads; // tid, cpuid, tstamp, dif
+std::vector<std::tuple<int, int, uint64_t, uint64_t, int>> es_threads; // tid, cpuid, tstamp, dif
 static std::atomic<bool> should_stop_scheduler;
 static void hurryup_tick();
 
@@ -50,7 +50,7 @@ void hurryup_init()
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(20ms);
+            std::this_thread::sleep_for(10ms);
             hurryup_tick();
         }
 
@@ -89,7 +89,7 @@ void hurryup_tick() {
     CallTracerItem ct_item;
     while(calltracer_consume(ct_item)) {
 	// Check for existence of tid
-	auto it = std::find_if(es_threads.begin(), es_threads.end(), [ = ](const std::tuple<int,int,int,int>& e) {
+	auto it = std::find_if(es_threads.begin(), es_threads.end(), [ = ](const std::tuple<int,int,uint64_t, uint64_t, int>& e) {
 			return std::get<0>(e) == ct_item.thread_id; });
 
 	// It exists
@@ -100,18 +100,26 @@ void hurryup_tick() {
 				std::get<1>(*it) = ct_item.cpu_id;
 			// Don't even bother, change freq to 1.0GHz and update tuple
 				changes[ct_item.cpu_id] = 0;
-				//std::cout << "Freq change to 1.0ghz: core " << ct_item.cpu_id << std::endl;
+				//std::cout << "Freq change to 1.0ghz: core " << std::get<1>(*it) << std::endl;
 				std::get<2>(*it) = ct_item.timestamp;
 				std::get<3>(*it) = 0;
+				std::get<4>(*it) = 0;
 			}
 			// It IS on hotpath
-			else {
+			else {	
+				// First time?
+				if(std::get<4>(*it) == 0) {
+					std::get<3>(*it) = 0;
+					std::get<4>(*it) = 1;
+					std::get<2>(*it) = ct_item.timestamp;
+				}
+
 				// Update dif and timestamps
 				std::get<1>(*it) = ct_item.cpu_id;
-				std::get<3>(*it) = std::get<3>(*it) + (ct_item.timestamp - std::get<2>(*it));
+				std::get<3>(*it) += (ct_item.timestamp - std::get<2>(*it));
 				std::get<2>(*it) = ct_item.timestamp;
-
-				if(std::get<3>(*it) > 300000000) {
+				if(std::get<3>(*it) > 350000000) {
+					std::cout << "freq change!" << std::endl;
 					changes[ct_item.cpu_id] = 1;
 				}
 
@@ -120,16 +128,13 @@ void hurryup_tick() {
 
 	// Thread doesn't exist in vector of tuples
 	else { 
-		//DEBUG: std::cout << "Not found"<< std::endl;
-		//DEBUG: std::cout << ct_item.thread_id << std::endl;
-		
 		//Create new tuple into vector
-	        es_threads.push_back(std::make_tuple(ct_item.thread_id, ct_item.cpu_id, ct_item.timestamp, 0));
+	        es_threads.push_back(std::make_tuple(ct_item.thread_id, ct_item.cpu_id, ct_item.timestamp, 0, 0));
 		//Set coreid to 1.0 GHz by default
 		changes[ct_item.cpu_id] = 0;
 	}
 
-      /*fprintf(stderr, "hurryup_jvmti: timestamp=%lu tid=%d cpu=%d is_hotpath=%d, i=%d",
+      /*fprintf(stderr, "hurryup_jvmti: timestamp=%lu tid=%d cpu=%d is_hotpath=%d\n",
               ct_item.timestamp, ct_item.thread_id, ct_item.cpu_id,
               ct_item.is_hotpath);*/
     }

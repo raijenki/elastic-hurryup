@@ -5,10 +5,10 @@ export IP=localhost
 export SEARCH_DRIVER=Ziphian.java
 #Read local IP
 export TERMS_FILE=terms_ordered
-export RAMP_UP=60
-export RAMP_DOWN=60
-export STEADY_STATE=1200
-export SCALE=8
+export RAMP_UP=30
+export RAMP_DOWN=30
+export STEADY_STATE=300
+export SCALE=4
 export AGENT_ID=1
 export HOST_IP=localhost
 export AGENTS=$HOST_IP:1

@@ -1,0 +1,6 @@
+May 07, 2020 12:25:25 AM com.sun.faban.driver.engine.MasterImpl configureAgents
+INFO: Configuring 1 SearchDriverAgents...
+May 07, 2020 12:25:30 AM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Started all threads; run commences in 2997 ms
+May 07, 2020 12:26:03 AM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Ramp up completed
