@@ -60,7 +60,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(20ms);
+            std::this_thread::sleep_for(50ms);
             hurryup_tick();
         }
 
@@ -116,6 +116,14 @@ void hurryup_tick() {
 	
 	// It exists
 	if (it != es_threads.end()) {
+      	fprintf(stderr, "hurryup_jvmti: timestamp=%lu tid=%d cpu=%d is_hotpath=%d\n",
+              ct_item.timestamp, ct_item.thread_id, ct_item.cpu_id,
+              ct_item.is_hotpath);
+		// This is to fix the core id after tasksetting
+		if(it->coreId != ct_item.cpu_id) {
+		       it->coreId = ct_item.cpu_id;	
+		}
+
 		// Hot path?
 		if(ct_item.is_hotpath == 1) {
 			if(it->exec == 2) { // It ALREADY had the frequency changed
@@ -124,13 +132,15 @@ void hurryup_tick() {
 				it->timestamp = ct_item.timestamp;
 			}
 			else { // It is on hotpath but did not change the frequency
-				it->dif += (it->timestamp - ct_item.timestamp);
+				it->dif += (ct_item.timestamp - it->timestamp);
 				it->timestamp = ct_item.timestamp;
+				it->exec = 1;
 
 				// Should we change frequency for this core?
-				if(it->dif > 30000000) {
+				if(it->dif > 300000000) {
 					it->exec = 2;
 					changes[ct_item.cpu_id] = 1;
+					//std::cout << "freq change 2.6! dif: " << it->dif << "tid: " << it->threadId << std::endl;
 				}
 			}
 		
@@ -146,6 +156,7 @@ void hurryup_tick() {
 
 				// Set it to transition to 1.0 GHz
 				changes[ct_item.cpu_id] = 0;
+				//std::cout << "freq change 1.0! tid: " << it->threadId << std::endl;
 
 			}
 
@@ -159,7 +170,7 @@ void hurryup_tick() {
 			// It is because only search threads access the hotpath and are the ones to
 			// change the processor frequency.
 			// Lets put it into our vector.
-			// Doing it this way for legibility purposes
+			// Doing it this way for readbility purposes
 			threadinfo t;
 			t.threadId = ct_item.thread_id;
 			t.coreId = ct_item.cpu_id;
@@ -172,9 +183,9 @@ void hurryup_tick() {
 		}
 	}
 	
-      /*fprintf(stderr, "hurryup_jvmti: timestamp=%lu tid=%d cpu=%d is_hotpath=%d\n",
-              ct_item.timestamp, ct_item.thread_id, ct_item.cpu_id,
-              ct_item.is_hotpath);*/
+      //fprintf(stderr, "hurryup_jvmti: timestamp=%lu tid=%d cpu=%d is_hotpath=%d\n",
+              //ct_item.timestamp, ct_item.thread_id, ct_item.cpu_id,
+              //ct_item.is_hotpath);
     }
     hurryup_freqchange();
 }
