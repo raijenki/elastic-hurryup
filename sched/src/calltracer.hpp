@@ -6,6 +6,7 @@
 struct CallTracerItem
 {
     uint64_t timestamp; // from time.hpp:get_time()
+    jthread java_thread;// Associated Java Thread
     pid_t thread_id;    // from gettid()
     int cpu_id;         // from sched_getcpu()
     bool is_hotpath;

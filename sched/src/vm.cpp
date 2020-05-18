@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "tls.hpp"
 
 static JavaVM* vm;
 
@@ -18,13 +19,17 @@ void vm_shutdown()
 
 auto vm_jni_env() -> JNIEnv*
 {
-    // there's one jni env per thread
-    // TODO is this actually signal safe?
-
-    JNIEnv* jni_env;
-    return vm->GetEnv(reinterpret_cast<void **>(&jni_env), JNI_VERSION_1_6) == 0
-               ? jni_env
-               : nullptr;
+    if(tls_has_data())
+    {
+        return tls_data().jni_env;
+    }
+    else
+    {
+        JNIEnv* jni_env;
+        return vm->GetEnv(reinterpret_cast<void **>(&jni_env), JNI_VERSION_1_6) == 0
+                   ? jni_env
+                   : nullptr;
+    }
 }
 
 auto vm_jvmti_env() -> jvmtiEnv*

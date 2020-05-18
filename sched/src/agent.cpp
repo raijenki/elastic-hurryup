@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <csignal>
 #include "vm.hpp"
+#include "tls.hpp"
 #include "hurryup.hpp"
 using std::memory_order_relaxed;
 
@@ -144,6 +145,8 @@ ThreadStart(jvmtiEnv *jvmti_env,
 
     //fprintf(stderr, "hurryup_jvmti: started thread %d\n", gettid());
 
+    tls_data_construct(thread, jni_env);
+
     pthread_sigmask(SIG_UNBLOCK, &sigprof_mask, nullptr);
 }
 
@@ -156,6 +159,8 @@ ThreadEnd(jvmtiEnv *jvmti_env,
     //fprintf(stderr, "hurryup_jvmti: ending thread %d\n", gettid());
 
     pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
+
+    tls_data_destroy();
 }
 
 
@@ -256,6 +261,8 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     if(!u64_atomic.is_lock_free())
         fprintf(stderr, "hurryup_jvmti: aligned atomic_uint64_t is not lock free!!!\n");
 
+    tls_init();
+
     vm_init(vm, jvmti);
 
     has_seen_signal_dispatcher.store(false);
@@ -272,5 +279,6 @@ Agent_OnUnload(JavaVM *vm)
 {
     calltracer_shutdown();
     vm_shutdown();
+    tls_shutdown();
     fprintf(stderr, "hurryup_jvmti: Agent has been unloaded\n");
 }

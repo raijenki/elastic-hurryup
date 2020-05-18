@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <jvmti.h>
 #include "vm.hpp" 
+#include "tls.hpp"
 #include "time.hpp"
 
 struct JVMPI_CallFrame
@@ -167,8 +168,10 @@ void calltracer_onmethodsload(jclass klass, jint method_count, jmethodID* method
 void calltracer_signal_handler(void* ucontext)
 {
     JNIEnv* jni_env = vm_jni_env();
-    if(!jni_env)
+    if(!jni_env || !tls_has_data())
         return; // not a java thread
+
+    const TlsData& tls = tls_data();
 
     jvmtiEnv* jvmti = vm_jvmti_env();
     assert(jvmti != nullptr);
@@ -185,11 +188,12 @@ void calltracer_signal_handler(void* ucontext)
         // some kind of error (see ticks_ enum)
         return;
     }
-    
+
     // TODO explain why these calls are (or aren't) signal safe
     const auto current_time = get_time();
-    const auto thread_id = gettid();
     const auto cpu_id = sched_getcpu();
+    const auto thread_id = tls.os_thread_id;
+    const auto jthread_id = tls.java_thread_id;
     bool is_hotpath = false;
 
     for(jint i = 0; i < trace.num_frames && !is_hotpath; ++i)
@@ -204,7 +208,7 @@ void calltracer_signal_handler(void* ucontext)
 	}
     }
 
-    if(!queue.try_push(CallTracerItem { current_time, thread_id, cpu_id, is_hotpath }))
+    if(!queue.try_push(CallTracerItem { current_time, jthread_id, thread_id, cpu_id, is_hotpath }))
     {
         // use write.2 directly since fprintf is not signal safe.
         const char message[] = "hurryup_jvmti: calltracer queue is full!!!!";
