@@ -100,7 +100,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(10ms);
+            std::this_thread::sleep_for(50ms);
             hurryup_tick();
         }
 
@@ -138,36 +138,19 @@ void hurryup_freqchange(void) {
 			//double time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; 
 			//std::cout << "change to 1.0 at " << time_in_mill << std::endl;
 			write(fd[i], freq, strlen(freq));
-			changes[i] = -1; // Don't change again until necessary
+			changes[i] = 2; // Don't change again until necessary
 			current_freq[i] = 0;
 		} else if (changes[i] == 1) {
-			char freq[8] = "1300000";
+			char freq[8] = "2600000";
+			//gettimeofday(&tv, NULL);
+			//double time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; 
+			//printf("%lf\n", time_in_mill);
+			//std::cout << "change to 2.6 at " << time_in_mill << std::endl;
 			write(fd[i], freq, strlen(freq));
-			changes[i] = -1; // Don't change again
+			changes[i] = 2; // Don't change again
 			current_freq[i] = 1;
-		}  else if (changes[i] == 2) {
-			char freq[8] = "1700000";
-			write(fd[i], freq, strlen(freq));
-			changes[i] = -1; // Don't change again
-			current_freq[i] = 1;
-		} else if (changes[i] == 3) {
-			char freq[8] = "2000000";
-			write(fd[i], freq, strlen(freq));
-			changes[i] = -1; // Don't change again
-			current_freq[i] = 1;
-		}  else if (changes[i] == 4) {
-			char freq[8] = "2300000";
-			write(fd[i], freq, strlen(freq));
-			changes[i] = -1; // Don't change again
-			current_freq[i] = 1;
-		}  else if (changes[i] == 5) {
-			char freq[8] = "2601000";
-			write(fd[i], freq, strlen(freq));
-			changes[i] = -1; // Don't change again
-			current_freq[i] = 1;
-			} 
+			}
 		}
-
 }
 
 void hurryup_restore_waiting_threads(void)
@@ -216,7 +199,7 @@ void hurryup_tick() {
 
 		// Hot path?
 		if(ct_item.is_hotpath == 1) {
-			if(it->exec == 2) { // It ALREADY had the frequency changed to the max
+			if(it->exec == 2) { // It ALREADY had the frequency changed
 				// Let's just update the timestamp and the dif for future purposes
 				it->dif += (it->timestamp - ct_item.timestamp);
 				it->timestamp = ct_item.timestamp;
@@ -225,28 +208,13 @@ void hurryup_tick() {
 				it->dif += (ct_item.timestamp - it->timestamp);
 				it->timestamp = ct_item.timestamp;
 				it->exec = 1;
+
 				// Should we change frequency for this core?
 				if(it->dif > 300000000) {
 					it->exec = 2;
-					changes[ct_item.cpu_id] = 5;
-				}
-				else if(it->dif > 200000000) { 
-					it->exec = 1;
-					changes[ct_item.cpu_id] = 4;
-				}
-				else if(it->dif > 150000000) { 
-					it->exec = 1;
-					changes[ct_item.cpu_id] = 3;
-				}
-				else if(it->dif > 100000000) { 
-					it->exec = 1;
-					changes[ct_item.cpu_id] = 2;
-				}
-				else if(it->dif > 5000000) { 
-					it->exec = 1;
 					changes[ct_item.cpu_id] = 1;
+					//std::cout << "freq change 2.6! dif: " << it->dif << "tid: " << it->threadId << std::endl;
 				}
-
 			}
 		
 		}
