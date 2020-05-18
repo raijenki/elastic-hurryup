@@ -1,5 +1,7 @@
 #include "hurryup.hpp"
 #include "calltracer.hpp"
+#include "time.hpp"
+#include "vm.hpp"
 #include <csignal>
 #include <algorithm>
 #include <thread>
@@ -16,13 +18,16 @@
 #include <unistd.h>
 #include <string>
 #include <sys/time.h>
+#include <jvmti.h>
 
-static std::thread scheduling_thread;
+//static std::thread scheduling_thread;
 int fd[24];
 int changes[24];  
+int current_freq[24];
 
 struct threadinfo {
 	int threadId; // Thread ID 
+	jthread jthreadId; // Java Thread ID
 	int coreId; // Core ID
 	uint64_t timestamp; // Most recent timestamp before actual execution
 	uint64_t dif; // Hotpath: Is the difference bigger than the threshold?
@@ -34,14 +39,48 @@ static std::atomic<bool> should_stop_scheduler;
 static void hurryup_tick();
 // using namespace std;
 
+static jthread alloc_thread()
+{
+    auto env = vm_jni_env();
+    if(!env)
+    {
+	fprintf(stderr, "hurryup_jvmti: Failed to alloc_thread because vm_jni_env failed.\n");
+	return nullptr;
+    }
+
+    auto thread_class = env->FindClass("java/lang/Thread");
+    if(!thread_class)
+    {
+	fprintf(stderr, "hurryup_jvmti: cannot find java/lang/Thread class\n");
+	return nullptr;
+    }
+
+    auto init_method_id = env->GetMethodID(thread_class, "<init>", "()V");
+    if(!init_method_id)
+    {
+	fprintf(stderr, "hurryup_jvmti: cannot find java/lang/Thread constructor\n");
+	return nullptr;
+    }
+
+    auto result = env->NewObject(thread_class, init_method_id);
+    if(!result)
+    {
+	fprintf(stderr, "hurryup_jvmti: cannot create new java/lang/Thread object\n");
+	return nullptr;
+    }
+
+    return result;
+}
+
 void hurryup_init() {
     should_stop_scheduler.store(false);
-    scheduling_thread = std::thread([] {
+
+    auto err = vm_jvmti_env()->RunAgentThread(alloc_thread(), +[](jvmtiEnv*, JNIEnv*, void*) {
+
         // Avoid sampling this thread.
         sigset_t sigprof_mask;
         sigemptyset(&sigprof_mask);
         sigaddset(&sigprof_mask, SIGPROF);
-
         pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
 	
 	// Variables for file opening
@@ -54,6 +93,7 @@ void hurryup_init() {
 		concat_dir2 = std::to_string(coreNum);
 		concat_dir3 = concat_dir1 + concat_dir2 + "/cpufreq/scaling_setspeed";
 		fd[coreNum] = open(concat_dir3.c_str(), O_RDWR);
+		current_freq[coreNum] = -1; // unknown frequency
 		coreNum += 2;
 	}
 
@@ -65,13 +105,20 @@ void hurryup_init() {
         }
 
         pthread_sigmask(SIG_UNBLOCK, &sigprof_mask, nullptr);
-    });
+
+    }, nullptr, JVMTI_THREAD_MAX_PRIORITY);
+
+    if(err)
+    {
+	fprintf(stderr, "hurryup_jvmti: failed to RunAgentThread\n");
+	std::abort();
+    }
 }
 
 void hurryup_shutdown()
 {
     should_stop_scheduler.store(true);
-    scheduling_thread.join();
+    //scheduling_thread.join();
     int coreNum = 0;
     while(coreNum < 24) {
 	close(fd[coreNum]);
@@ -92,6 +139,7 @@ void hurryup_freqchange(void) {
 			//std::cout << "change to 1.0 at " << time_in_mill << std::endl;
 			write(fd[i], freq, strlen(freq));
 			changes[i] = 2; // Don't change again until necessary
+			current_freq[i] = 0;
 		} else if (changes[i] == 1) {
 			char freq[8] = "2600000";
 			//gettimeofday(&tv, NULL);
@@ -100,8 +148,35 @@ void hurryup_freqchange(void) {
 			//std::cout << "change to 2.6 at " << time_in_mill << std::endl;
 			write(fd[i], freq, strlen(freq));
 			changes[i] = 2; // Don't change again
+			current_freq[i] = 1;
 			}
 		}
+}
+
+void hurryup_restore_waiting_threads(void)
+{
+    jvmtiEnv* jvmti_env = vm_jvmti_env();
+    //const auto current_time = get_time();
+
+    // Waiting threads do not produce events, as such we must identify
+    // and return these threads to the 1.0GHz frequency.
+    for(auto& es_thread : es_threads)
+    {
+	if(current_freq[es_thread.coreId] != 1) // ignore threads not in 2.6Ghz
+	    continue;
+
+	jint thread_state, err;
+	if((err = jvmti_env->GetThreadState(es_thread.jthreadId, &thread_state)) != 0)
+	{
+	    fprintf(stderr, "hurryup_jvmti: failed to GetThreadState (error code %d)\n", err);
+	    continue;
+	}
+
+	if(thread_state & JVMTI_THREAD_STATE_WAITING)
+	{
+	    changes[es_thread.coreId] = 0;
+	}
+    }
 }
 
 void hurryup_tick() {
@@ -173,6 +248,7 @@ void hurryup_tick() {
 			// Doing it this way for readbility purposes
 			threadinfo t;
 			t.threadId = ct_item.thread_id;
+			t.jthreadId = ct_item.java_thread;
 			t.coreId = ct_item.cpu_id;
 			t.timestamp = ct_item.timestamp;
 			t.dif = 0;
@@ -187,5 +263,7 @@ void hurryup_tick() {
               //ct_item.timestamp, ct_item.thread_id, ct_item.cpu_id,
               //ct_item.is_hotpath);
     }
+
+    hurryup_restore_waiting_threads();
     hurryup_freqchange();
 }
