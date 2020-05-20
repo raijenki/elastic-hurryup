@@ -100,7 +100,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(10ms);
+            std::this_thread::sleep_for(50ms);
             hurryup_tick();
         }
 
@@ -140,7 +140,7 @@ void hurryup_freqchange(void) {
 			write(fd[i], freq, strlen(freq));
 			changes[i] = -1; // Don't change again until necessary
 			current_freq[i] = 0;
-		} else if (changes[i] == 1) {
+		/*} else if (changes[i] == 1) {
 			char freq[8] = "1300000";
 			write(fd[i], freq, strlen(freq));
 			changes[i] = -1; // Don't change again
@@ -159,7 +159,7 @@ void hurryup_freqchange(void) {
 			char freq[8] = "2300000";
 			write(fd[i], freq, strlen(freq));
 			changes[i] = -1; // Don't change again
-			current_freq[i] = 1;
+			current_freq[i] = 1;*/
 		}  else if (changes[i] == 5) {
 			char freq[8] = "2601000";
 			write(fd[i], freq, strlen(freq));
@@ -194,6 +194,9 @@ void hurryup_restore_waiting_threads(void)
 	    //std::cout << "down to 1.0 " << es_thread.threadId << std::endl;
 	    changes[es_thread.coreId] = 0;
 	}
+	if(thread_state & JVMTI_THREAD_STATE_BLOCKED_ON_MONITOR_ENTER) {
+		changes[es_thread.coreId] = 0;
+	}
     }
 }
 
@@ -226,10 +229,10 @@ void hurryup_tick() {
 				it->timestamp = ct_item.timestamp;
 				it->exec = 1;
 				// Should we change frequency for this core?
-				if(it->dif > 300000000) {
+				if(it->dif > 350000000) {
 					it->exec = 2;
 					changes[ct_item.cpu_id] = 5;
-				}
+				}/*
 				else if(it->dif > 200000000) { 
 					it->exec = 1;
 					changes[ct_item.cpu_id] = 4;
@@ -245,7 +248,7 @@ void hurryup_tick() {
 				else if(it->dif > 5000000) { 
 					it->exec = 1;
 					changes[ct_item.cpu_id] = 1;
-				}
+				}*/
 
 			}
 		

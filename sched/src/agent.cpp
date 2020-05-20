@@ -176,7 +176,7 @@ VMInit(jvmtiEnv *jvmti_env,
 
     hurryup_init();
 
-    calltracer_start(2);
+    calltracer_start(10);
 
     is_vm_alive.store(true);
 }
