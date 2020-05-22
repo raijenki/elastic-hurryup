@@ -100,7 +100,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(5ms);
+            std::this_thread::sleep_for(2ms);
             hurryup_tick();
         }
 
@@ -191,10 +191,16 @@ void hurryup_restore_waiting_threads(void)
 
 	if(thread_state & JVMTI_THREAD_STATE_WAITING)
 	{	
-	    //std::cout << "down to 1.0 " << es_thread.threadId << std::endl;
+	    //std::cout << "down to 1.0 for wait - coreId: " << es_thread.coreId << std::endl;
+	    es_thread.exec = 0;
+	    es_thread.dif = 0;
+	    es_thread.timestamp = get_time();
 	    changes[es_thread.coreId] = 0;
 	}
 	if(thread_state & JVMTI_THREAD_STATE_BLOCKED_ON_MONITOR_ENTER) {
+		es_thread.exec = 0;
+		es_thread.timestamp = get_time();
+		es_thread.dif = 0;
 		changes[es_thread.coreId] = 0;
 	}
     }
@@ -231,6 +237,7 @@ void hurryup_tick() {
 				// Should we change frequency for this core?
 				if(it->dif > 350000000) {
 					it->exec = 2;
+					//std::cout << "freq change 2.6 - coreId: " << ct_item.cpu_id << " dif: " << it->dif << std::endl;
 					changes[ct_item.cpu_id] = 5;
 				}/*
 				else if(it->dif > 200000000) { 
@@ -261,11 +268,10 @@ void hurryup_tick() {
 				it->timestamp = ct_item.timestamp;
 				it->dif = 0;
 				it->exec = 0; // This change wont happen again
-
+				
 				// Set it to transition to 1.0 GHz
 				changes[ct_item.cpu_id] = 0;
-				//std::cout << "freq change 1.0! tid: " << it->threadId << std::endl;
-
+				//std::cout << "freq change 1.0! tid: " << ct_item.cpu_id << std::endl;
 			}
 
 		}
