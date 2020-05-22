@@ -100,7 +100,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(2ms);
+            std::this_thread::sleep_for(10ms);
             hurryup_tick();
         }
 
@@ -235,7 +235,7 @@ void hurryup_tick() {
 				it->timestamp = ct_item.timestamp;
 				it->exec = 1;
 				// Should we change frequency for this core?
-				if(it->dif > 350000000) {
+				if(it->dif > 300000000) {
 					it->exec = 2;
 					//std::cout << "freq change 2.6 - coreId: " << ct_item.cpu_id << " dif: " << it->dif << std::endl;
 					changes[ct_item.cpu_id] = 5;
@@ -272,6 +272,10 @@ void hurryup_tick() {
 				// Set it to transition to 1.0 GHz
 				changes[ct_item.cpu_id] = 0;
 				//std::cout << "freq change 1.0! tid: " << ct_item.cpu_id << std::endl;
+			}
+			else if(it->exec == 0) {
+				it->timestamp = ct_item.timestamp;
+				it->dif = 0;
 			}
 
 		}
