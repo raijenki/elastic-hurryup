@@ -82,7 +82,7 @@ void hurryup_init() {
         sigemptyset(&sigprof_mask);
         sigaddset(&sigprof_mask, SIGPROF);
         pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
-	
+	printf("AGENT TID IS %d\n", gettid());
 	// Variables for file opening
 	int coreNum = 0;
 	std::string concat_dir1 = "/sys/devices/system/cpu/cpu";
@@ -100,7 +100,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(50ms);
+            std::this_thread::sleep_for(10ms);
             hurryup_tick();
         }
 
@@ -235,7 +235,7 @@ void hurryup_tick() {
 				it->timestamp = ct_item.timestamp;
 				it->exec = 1;
 				// Should we change frequency for this core?
-				if(it->dif > 300000000) {
+				if(it->dif > 350000000) {
 					it->exec = 2;
 					//std::cout << "freq change 2.6 - coreId: " << ct_item.cpu_id << " dif: " << it->dif << std::endl;
 					changes[ct_item.cpu_id] = 5;

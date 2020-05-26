@@ -42,7 +42,6 @@ void tls_data_construct(jthread jthread_id, JNIEnv* jni_env)
             jni_env,
             gettid()
     });
-
     assert(tls_has_data());
 }
 
