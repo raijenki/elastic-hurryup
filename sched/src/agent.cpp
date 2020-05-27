@@ -144,10 +144,18 @@ ThreadStart(jvmtiEnv *jvmti_env,
     }
 
     //fprintf(stderr, "hurryup_jvmti: started thread %d\n", gettid());
-
     tls_data_construct(thread, jni_env);
 
+    jvmtiThreadInfo info;
+    jvmti_env->GetThreadInfo(thread, &info);
+    if(info.name && !strstr(info.name, "[search]")) {
+	pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
+	return;
+}
+    printf("Thread name is %s\n", info.name);
+    
     pthread_sigmask(SIG_UNBLOCK, &sigprof_mask, nullptr);
+
 }
 
 /// Called when a Java Thread ends.
@@ -176,7 +184,7 @@ VMInit(jvmtiEnv *jvmti_env,
 
     hurryup_init();
 
-    calltracer_start(5);
+    calltracer_start(10);
 
     is_vm_alive.store(true);
 }
