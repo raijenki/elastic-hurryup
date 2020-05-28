@@ -191,7 +191,7 @@ void calltracer_signal_handler(void* ucontext)
 
     // TODO explain why these calls are (or aren't) signal safe
     const auto current_time = get_time();
-    const auto cpu_id = sched_getcpu();
+    const auto cpu_id = tls.cpu_id;
     const auto thread_id = tls.os_thread_id;
     const auto jthread_id = tls.java_thread_id;
     bool is_hotpath = false;

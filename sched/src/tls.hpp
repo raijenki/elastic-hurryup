@@ -12,6 +12,8 @@ struct TlsData
     JNIEnv* jni_env;
     /// OS thread id as obtained by `gettid()`.
     pid_t os_thread_id;
+    /// The CPU allocated to this thread (or `-1` if unknown).
+    int cpu_id = -1;
 };
 
 bool tls_init();

@@ -10,6 +10,7 @@
 #include "vm.hpp"
 #include "tls.hpp"
 #include "hurryup.hpp"
+#include <sched.h>
 using std::memory_order_relaxed;
 
 /// We need to watch for when the VM is alive.
@@ -30,6 +31,9 @@ static const sigset_t sigprof_mask = [] {
     sigaddset(&s, SIGPROF);
     return s;
 }();
+
+/// The CPU the next thread should be allocated into.
+static int next_cpu_id = 0;
 
 
 /// Ensures all methods of a class have a jmethodID.
@@ -146,16 +150,35 @@ ThreadStart(jvmtiEnv *jvmti_env,
     //fprintf(stderr, "hurryup_jvmti: started thread %d\n", gettid());
     tls_data_construct(thread, jni_env);
 
-    jvmtiThreadInfo info;
-    jvmti_env->GetThreadInfo(thread, &info);
-    if(info.name && !strstr(info.name, "[search]")) {
-	pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
-	return;
-}
-    printf("Thread name is %s\n", info.name);
-    
-    pthread_sigmask(SIG_UNBLOCK, &sigprof_mask, nullptr);
+    {
+	TlsData& tls = tls_data();
 
+	jvmtiThreadInfo info;
+	jvmti_env->GetThreadInfo(thread, &info);
+	if(!info.name || !strstr(info.name, "[search]")) {
+	    pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
+	    return;
+	}
+
+	const auto this_cpu_id = next_cpu_id;
+	next_cpu_id += 2;
+	tls.cpu_id = this_cpu_id;
+
+	cpu_set_t cpu_set;
+	CPU_ZERO(&cpu_set);
+	CPU_SET(this_cpu_id, &cpu_set);
+	if(sched_setaffinity(tls.os_thread_id, sizeof(cpu_set), &cpu_set) == -1)
+	{
+	    fprintf(
+		stderr,
+		"hurryup_jvmti: Failed to sched_setaffinity thread %d at core %d",
+		tls.os_thread_id, this_cpu_id);
+        }
+
+	printf("Created thread %s at core %d\n", info.name, this_cpu_id);
+
+	pthread_sigmask(SIG_UNBLOCK, &sigprof_mask, nullptr);
+    }
 }
 
 /// Called when a Java Thread ends.
