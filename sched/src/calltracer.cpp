@@ -92,16 +92,8 @@ bool calltracer_consume(CallTracerItem& item)
 
 void calltracer_signal_handler(void* ucontext)
 {
-    JNIEnv* jni_env = vm_jni_env();
-    if(!jni_env || !tls_has_data())
-        return; // not a java thread
-
     const TlsData& tls = tls_data();
 
-    jvmtiEnv* jvmti = vm_jvmti_env();
-    assert(jvmti != nullptr);
-
-    // TODO explain why these calls are (or aren't) signal safe
     const auto current_time = get_time();
     const auto cpu_id = tls.cpu_id;
     const auto thread_id = tls.os_thread_id;
