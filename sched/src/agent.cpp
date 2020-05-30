@@ -104,7 +104,7 @@ static void JNICALL OnClassFileLoad(
 
 extern "C"
 JNIEXPORT void JNICALL
-JavaCritical_org_hurryup_Test_onEnterExecuteQueryPhase()
+JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase()
 {
     fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
     ++tls_data().hotpath_enters;
@@ -112,14 +112,14 @@ JavaCritical_org_hurryup_Test_onEnterExecuteQueryPhase()
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_org_hurryup_Test_onEnterExecuteQueryPhase(JNIEnv *jni, jclass klass)
+Java_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase(JNIEnv *jni, jclass klass)
 {
-    return JavaCritical_org_hurryup_Test_onEnterExecuteQueryPhase();
+    return JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase();
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-JavaCritical_org_hurryup_Test_onLeaveExecuteQueryPhase()
+JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase()
 {
     --tls_data().hotpath_enters;
     fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
@@ -127,9 +127,9 @@ JavaCritical_org_hurryup_Test_onLeaveExecuteQueryPhase()
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_org_hurryup_Test_onLeaveExecuteQueryPhase(JNIEnv *jni, jclass klass)
+Java_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase(JNIEnv *jni, jclass klass)
 {
-    return JavaCritical_org_hurryup_Test_onLeaveExecuteQueryPhase();
+    return JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase();
 }
 
 /// Called when a Java Thread starts.
