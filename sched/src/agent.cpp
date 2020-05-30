@@ -1,4 +1,5 @@
 #include <jvmti.h>
+#include <jnif.hpp>
 #include <cassert>
 #include <cstring>
 #include <atomic>
@@ -35,79 +36,100 @@ static const sigset_t sigprof_mask = [] {
 /// The CPU the next thread should be allocated into.
 static int next_cpu_id = 0;
 
-
-/// Ensures all methods of a class have a jmethodID.
-static void load_method_ids(jvmtiEnv *jvmti, jclass klass)
+static void JNICALL OnClassFileLoad(
+    jvmtiEnv *jvmti_env, JNIEnv *jni_env, jclass class_being_redefined,
+    jobject loader, const char *name, jobject protection_domain,
+    jint class_data_len, const unsigned char *class_data,
+    jint *new_class_data_len, unsigned char **new_class_data)
 {
-    jint method_count;
-    jmethodID* methods = nullptr;
-    jvmtiError err;
-    err = jvmti->GetClassMethods(klass, &method_count, &methods);
-    if(err == JVMTI_ERROR_NONE)
+    constexpr auto interesting_class_name = "org/elasticsearch/search/SearchService";
+    constexpr auto interesting_method_name = "executeQueryPhase";
+
+    if(strcmp(name, interesting_class_name) != 0)
+	return;
+
+    jnif::parser::ClassFileParser cf(class_data, class_data_len);
+
+    const auto enter_method_hook_name = "onEnterExecuteQueryPhase";
+    const auto leave_method_hook_name = "onLeaveExecuteQueryPhase";
+    const auto void_method_desc_name = "()V";
+
+    const auto enter_method_hook_index = cf.putUtf8(enter_method_hook_name);
+    const auto leave_method_hook_index = cf.putUtf8(leave_method_hook_name);
+    const auto void_method_desc_index = cf.putUtf8(void_method_desc_name);
+    const auto hook_method_attr = jnif::Method::PRIVATE | jnif::Method::STATIC |
+                                  jnif::Method::NATIVE |
+                                  jnif::Method::SYNTHETIC;
+
+    cf.addMethod(enter_method_hook_index, void_method_desc_index,
+                 hook_method_attr);
+    cf.addMethod(leave_method_hook_index, void_method_desc_index,
+                 hook_method_attr);
+
+    const auto enter_method_hook_ref = cf.addMethodRef(
+        cf.thisClassIndex, enter_method_hook_name, void_method_desc_name);
+    const auto leave_method_hook_ref = cf.addMethodRef(
+        cf.thisClassIndex, leave_method_hook_name, void_method_desc_name);
+
+    for(auto& method : cf.methods)
     {
-        calltracer_onmethodsload(klass, method_count, methods);
-        jvmti->Deallocate(reinterpret_cast<unsigned char*>(methods));
+	if(!strcmp(method.getName(), interesting_method_name))
+	{
+	    auto& il = method.instList();
+            il.addInvoke(jnif::Opcode::invokestatic, enter_method_hook_ref,
+                         *il.begin());
+
+	    for(auto* inst : il)
+	    {
+		if(inst->isExit())
+		{
+		    il.addInvoke(jnif::Opcode::invokestatic,
+                                 leave_method_hook_ref, inst);
+                }
+	    }
+        }
     }
-    else if(err == JVMTI_ERROR_CLASS_NOT_PREPARED)
+
+    *new_class_data_len = cf.computeSize();
+    if(jvmti_env->Allocate(*new_class_data_len, new_class_data) != 0)
     {
-        // Some classes mayn't be prepared during VMInit, so we ignore this error.
+	fprintf(stderr, "hurryup_jvmti: Failed to allocate new class data\n");
+	*new_class_data_len = 0;
+	*new_class_data = nullptr;
+	return;
     }
-    else
-    {
-        fprintf(stderr, "hurryup_jvmti: load_method_ids failed (%d)\n", err);
-    }
+
+    cf.write(*new_class_data, *new_class_data_len);
 }
 
-/// Ensures the methods of all loaded classes have a jmethodID.
-static void load_all_method_ids(jvmtiEnv *jvmti)
+extern "C"
+JNIEXPORT void JNICALL
+JavaCritical_org_hurryup_Test_onEnterExecuteQueryPhase()
 {
-    jint class_count;
-    jclass* classes;
-    if(jvmti->GetLoadedClasses(&class_count, &classes) == 0)
-    {
-        for(jint i = 0; i < class_count; ++i)
-            load_method_ids(jvmti, classes[i]);
-
-        jvmti->Deallocate(reinterpret_cast<unsigned char*>(classes));
-    }
-    else
-    {
-        fprintf(stderr, "hurryup_jvmti: load_all_method_ids failed\n");
-    }
+    fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
+    ++tls_data().hotpath_enters;
 }
 
-/// Called when a class file loads.
-///
-/// Necessary for AsyncGetCallTrace to work.
-static void JNICALL
-OnClassLoad(jvmtiEnv *jvmti_env,
-        JNIEnv *jni_env,
-        jthread thread,
-        jclass klass)
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_hurryup_Test_onEnterExecuteQueryPhase(JNIEnv *jni, jclass klass)
 {
+    return JavaCritical_org_hurryup_Test_onEnterExecuteQueryPhase();
 }
 
-/// Called when a class preparation is complete.
-static void JNICALL
-OnClassPrepare(jvmtiEnv *jvmti_env,
-            JNIEnv* jni_env,
-            jthread thread,
-            jclass klass)
+extern "C"
+JNIEXPORT void JNICALL
+JavaCritical_org_hurryup_Test_onLeaveExecuteQueryPhase()
 {
-    // Make sure method ids are initialized for AsyncGetCallTrace.
-    load_method_ids(jvmti_env, klass);
+    --tls_data().hotpath_enters;
+    fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
 }
 
-/// Called when a method is compiled by the JIT.
-///
-/// Needed to enable DebugNonSafepoints.
-static void JNICALL
-OnCompiledMethodLoad(jvmtiEnv *jvmti_env, jmethodID method,
-                     jint code_size, const void *code_addr,
-                     jint map_length,
-                     const jvmtiAddrLocationMap *map,
-                     const void *compile_info)
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_hurryup_Test_onLeaveExecuteQueryPhase(JNIEnv *jni, jclass klass)
 {
+    return JavaCritical_org_hurryup_Test_onLeaveExecuteQueryPhase();
 }
 
 /// Called when a Java Thread starts.
@@ -201,10 +223,6 @@ VMInit(jvmtiEnv *jvmti_env,
             JNIEnv* jni_env,
             jthread thread)
 {
-    // Ensure the method ids for classes that were already loaded
-    // are available for AsyncGetCallTrace.
-    load_all_method_ids(jvmti_env);
-
     hurryup_init();
 
     calltracer_start(10);
@@ -237,7 +255,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 
     jvmtiCapabilities caps;
     memset(&caps, 0, sizeof(caps));
-    caps.can_generate_compiled_method_load_events = true;
+    caps.can_generate_all_class_hook_events = true;
     if((err = jvmti->AddCapabilities(&caps)))
     {
         fprintf(stderr, "hurryup_jvmti: Failed to add capabilities (%d)\n", err);
@@ -247,20 +265,10 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     jvmtiEventCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
 
-    callbacks.ClassLoad = OnClassLoad;
+    callbacks.ClassFileLoadHook = OnClassFileLoad;
     jvmti->SetEventNotificationMode(JVMTI_ENABLE,
-                                    JVMTI_EVENT_CLASS_LOAD,
-                                    NULL);
-
-    callbacks.ClassPrepare = OnClassPrepare;
-    jvmti->SetEventNotificationMode(JVMTI_ENABLE,
-                                    JVMTI_EVENT_CLASS_PREPARE,
-                                    NULL);
-
-    callbacks.CompiledMethodLoad = OnCompiledMethodLoad;
-    jvmti->SetEventNotificationMode(JVMTI_ENABLE,
-                                    JVMTI_EVENT_COMPILED_METHOD_LOAD,
-                                    NULL);
+                                    JVMTI_EVENT_CLASS_FILE_LOAD_HOOK,
+				    NULL);
 
     callbacks.ThreadStart = ThreadStart;
     jvmti->SetEventNotificationMode(JVMTI_ENABLE,

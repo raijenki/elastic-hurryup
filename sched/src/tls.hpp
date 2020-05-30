@@ -14,6 +14,8 @@ struct TlsData
     pid_t os_thread_id;
     /// The CPU allocated to this thread (or `-1` if unknown).
     int cpu_id = -1;
+    /// Greater than 0 if we are in a hotpath.
+    int hotpath_enters = 0;
 };
 
 bool tls_init();

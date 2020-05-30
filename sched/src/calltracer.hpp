@@ -16,8 +16,6 @@ void calltracer_init();
 
 void calltracer_shutdown();
 
-void calltracer_onmethodsload(jclass klass, jint method_count, jmethodID* methods);
-
 bool calltracer_start(uint32_t sample_time_ms);
 
 void calltracer_stop();
