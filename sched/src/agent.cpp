@@ -45,7 +45,7 @@ static void JNICALL OnClassFileLoad(
     constexpr auto interesting_class_name = "org/elasticsearch/search/SearchService";
     constexpr auto interesting_method_name = "executeQueryPhase";
 
-    if(strcmp(name, interesting_class_name) != 0)
+    if(!name || strcmp(name, interesting_class_name))
 	return;
 
     jnif::parser::ClassFileParser cf(class_data, class_data_len);
@@ -106,7 +106,7 @@ extern "C"
 JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase()
 {
-    fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
+    //fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
     ++tls_data().hotpath_enters;
 }
 
@@ -122,7 +122,7 @@ JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase()
 {
     --tls_data().hotpath_enters;
-    fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
+    //fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
 }
 
 extern "C"
