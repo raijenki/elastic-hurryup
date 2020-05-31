@@ -92,6 +92,9 @@ bool calltracer_consume(CallTracerItem& item)
 
 void calltracer_signal_handler(void* ucontext)
 {
+    if(!tls_has_data())
+        return;
+
     const TlsData& tls = tls_data();
 
     const auto current_time = get_time();
