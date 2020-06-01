@@ -22,3 +22,4 @@ void calltracer_stop();
 
 bool calltracer_consume(CallTracerItem& item);
 
+void calltracer_addpush(int is_hotpath);

@@ -100,7 +100,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(20ms);
+            std::this_thread::sleep_for(10ms);
             hurryup_tick();
         }
 
@@ -137,7 +137,7 @@ void hurryup_freqchange(void) {
 			//gettimeofday(&tv, NULL);
 			//double time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; 
 			//std::cout << "change to 1.0 at " << time_in_mill << std::endl;
-			//write(fd[i], freq, strlen(freq));
+			write(fd[i], freq, strlen(freq));
 			changes[i] = -1; // Don't change again until necessary
 			current_freq[i] = 0;
 		/*} else if (changes[i] == 1) {

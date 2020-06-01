@@ -85,13 +85,15 @@ void calltracer_stop()
     has_started.store(false);
 }
 
-bool calltracer_consume(CallTracerItem& item)
-{
+void calltracer_addpush(int is_hotpath) {
+	queue.try_push(CallTracerItem { get_time(), nullptr, 0, 0, is_hotpath });
+}
+
+bool calltracer_consume(CallTracerItem& item) {
     return queue.try_pop(item);
 }
 
-void calltracer_signal_handler(void* ucontext)
-{
+void calltracer_signal_handler(void* ucontext) {
     if(!tls_has_data())
         return;
 
@@ -101,10 +103,9 @@ void calltracer_signal_handler(void* ucontext)
     const auto cpu_id = tls.cpu_id;
     const auto thread_id = tls.os_thread_id;
     const auto jthread_id = tls.java_thread_id;
-    const bool is_hotpath = tls.hotpath_enters > 0;
-
-    if(!queue.try_push(CallTracerItem { current_time, jthread_id, thread_id, cpu_id, is_hotpath }))
-    {
+    const bool is_hotpath = tls.hotpath_enters > 0;  
+ 
+    if(!queue.try_push(CallTracerItem { current_time, jthread_id, thread_id, cpu_id, is_hotpath })){
         // use write.2 directly since fprintf is not signal safe.
         const char message[] = "hurryup_jvmti: calltracer queue is full!!!!";
         write(2, message, sizeof(message));

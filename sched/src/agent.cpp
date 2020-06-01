@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstring>
 #include <atomic>
+#include "MPMCQueue.h"
 #include "time.hpp"
 #include "calltracer.hpp"
 #include <sys/types.h>
@@ -107,6 +108,7 @@ JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase()
 {
     //fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
+    //calltracer_addpush(1);
     ++tls_data().hotpath_enters;
 }
 
@@ -121,6 +123,7 @@ extern "C"
 JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase()
 {
+    calltracer_addpush(0);
     --tls_data().hotpath_enters;
     //fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
 }
@@ -225,7 +228,7 @@ VMInit(jvmtiEnv *jvmti_env,
 {
     hurryup_init();
 
-    calltracer_start(10);
+    calltracer_start(5);
 
     is_vm_alive.store(true);
 }
