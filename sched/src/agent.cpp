@@ -108,7 +108,7 @@ JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase()
 {
     //fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
-    //calltracer_addpush(1);
+    calltracer_addpush(true);
     ++tls_data().hotpath_enters;
 }
 
@@ -123,7 +123,7 @@ extern "C"
 JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase()
 {
-    calltracer_addpush(0);
+    calltracer_addpush(false);
     --tls_data().hotpath_enters;
     //fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
 }
@@ -228,7 +228,7 @@ VMInit(jvmtiEnv *jvmti_env,
 {
     hurryup_init();
 
-    calltracer_start(5);
+    //calltracer_start(5);
 
     is_vm_alive.store(true);
 }
@@ -238,7 +238,7 @@ static void JNICALL
 VMDeath(jvmtiEnv *jvmti_env,
             JNIEnv* jni_env)
 {
-    calltracer_stop();
+    //calltracer_stop();
     hurryup_shutdown();
     is_vm_alive.store(false);
 }
@@ -309,7 +309,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 
     has_seen_signal_dispatcher.store(false);
 
-    calltracer_init();
+    //calltracer_init();
 
     fprintf(stderr, "hurryup_jvmti: Agent has been loaded.\n");
     return 0;
@@ -319,7 +319,7 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 JNIEXPORT void JNICALL 
 Agent_OnUnload(JavaVM *vm)
 {
-    calltracer_shutdown();
+    //calltracer_shutdown();
     vm_shutdown();
     tls_shutdown();
     fprintf(stderr, "hurryup_jvmti: Agent has been unloaded\n");
