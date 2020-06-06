@@ -76,6 +76,17 @@ static void JNICALL OnClassFileLoad(
     {
 	if(!strcmp(method.getName(), interesting_method_name))
 	{
+            // Possible Overloads
+            // (Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;Lorg/elasticsearch/action/ActionListener;)V
+            // (Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;)Lorg/elasticsearch/search/SearchPhaseResult;
+            // (Lorg/elasticsearch/search/internal/InternalScrollSearchRequest;Lorg/elasticsearch/action/search/SearchTask;Lorg/elasticsearch/action/ActionListener;)V
+            // (Lorg/elasticsearch/search/query/QuerySearchRequest;Lorg/elasticsearch/action/search/SearchTask;Lorg/elasticsearch/action/ActionListener;)V
+
+            if(strcmp(method.getDesc(), "(Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;)Lorg/elasticsearch/search/SearchPhaseResult;"))
+                continue;
+
+	    fprintf(stderr, "hurryup_jvmti: Instrumenting %s%s\n", method.getName(), method.getDesc());
+
 	    auto& il = method.instList();
             il.addInvoke(jnif::Opcode::invokestatic, enter_method_hook_ref,
                          *il.begin());
@@ -109,7 +120,7 @@ JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase()
 {
     //fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
     calltracer_addpush(true);
-    ++tls_data().hotpath_enters;
+    //++tls_data().hotpath_enters;
 }
 
 extern "C"
@@ -124,7 +135,7 @@ JNIEXPORT void JNICALL
 JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase()
 {
     calltracer_addpush(false);
-    --tls_data().hotpath_enters;
+    //--tls_data().hotpath_enters;
     //fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
 }
 
@@ -172,7 +183,6 @@ ThreadStart(jvmtiEnv *jvmti_env,
         }
     }
 
-    //fprintf(stderr, "hurryup_jvmti: started thread %d\n", gettid());
     tls_data_construct(thread, jni_env);
 
     {
@@ -180,6 +190,7 @@ ThreadStart(jvmtiEnv *jvmti_env,
 
 	jvmtiThreadInfo info;
 	jvmti_env->GetThreadInfo(thread, &info);
+        //fprintf(stderr, "hurryup_jvmti: started thread (name %s) (tid %d)\n", info.name, gettid());
 	if(!info.name || !strstr(info.name, "[search]")) {
 	    pthread_sigmask(SIG_BLOCK, &sigprof_mask, nullptr);
 	    return;
@@ -200,7 +211,7 @@ ThreadStart(jvmtiEnv *jvmti_env,
 		tls.os_thread_id, this_cpu_id);
         }
 
-	printf("Created thread %s at core %d\n", info.name, this_cpu_id);
+	//printf("Created thread %s at core %d\n", info.name, this_cpu_id);
 
 	pthread_sigmask(SIG_UNBLOCK, &sigprof_mask, nullptr);
     }

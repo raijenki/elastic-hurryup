@@ -72,3 +72,4 @@ until $(curl --output /dev/null --silent --head --fail http://localhost:9200); d
 	sleep 3s
 	#Output summary
 	#cat $FABAN_OUTPUT_DIR/1/summary.xml
+	sudo killall -p /usr/lib/jvm/java-8-openjdk-amd64/bin/java

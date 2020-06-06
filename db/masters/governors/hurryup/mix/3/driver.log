@@ -1,0 +1,20 @@
+Jun 06, 2020 4:05:06 AM com.sun.faban.driver.engine.MasterImpl configureAgents
+INFO: Configuring 1 SearchDriverAgents...
+Jun 06, 2020 4:05:11 AM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Started all threads; run commences in 2997 ms
+Jun 06, 2020 4:05:44 AM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Ramp up completed
+Jun 06, 2020 4:25:44 AM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Steady state completed
+Jun 06, 2020 4:26:14 AM com.sun.faban.driver.engine.MasterImpl executeRun
+INFO: Ramp down completed
+Jun 06, 2020 4:26:14 AM com.sun.faban.driver.engine.MasterImpl getDriverMetrics
+INFO: Gathering SearchDriverStats ...
+Jun 06, 2020 4:26:14 AM com.sun.faban.driver.engine.MasterImpl generateReports
+INFO: Printing Summary report ...
+Jun 06, 2020 4:26:14 AM com.sun.faban.driver.engine.MasterImpl generateReports
+INFO: Summary finished. Now printing detail ...
+Jun 06, 2020 4:26:14 AM com.sun.faban.driver.engine.MasterImpl generateReports
+INFO: Detail finished. Results written to /home/cc/elastic-hurryup/db/376.
+Jun 06, 2020 4:26:14 AM com.sun.faban.driver.engine.MasterImpl generateReports
+INFO: Hash of generated summary.xml file [aIsNPQi52zLJYt9nee+sKeRkbahcQraCwvg4b6gBYqcAddakAn6HD8vcud/j1gq10xqtKo4XCDnDMrMe0oWHDA==]
