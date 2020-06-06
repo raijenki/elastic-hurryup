@@ -86,8 +86,6 @@ void calltracer_stop()
 }
 
 void calltracer_addpush(bool is_hotpath) {
-    	if(!tls_has_data())
-        	return;
 
 	const TlsData& tls = tls_data();
 
@@ -95,11 +93,13 @@ void calltracer_addpush(bool is_hotpath) {
         const auto cpu_id = tls.cpu_id;
         const auto thread_id = tls.os_thread_id;
         const auto jthread_id = tls.java_thread_id;
- 
-	printf("Event - java_thread_id: %d - thread_id: %d - cpu_id: %d - is_hotpath: %d\n", jthread_id, thread_id, cpu_id, is_hotpath);
-    	queue.try_push(CallTracerItem { current_time, jthread_id, thread_id, cpu_id, is_hotpath });
 
-	//queue.try_push(CallTracerItem { get_time(), tls.java_thread_id, tls.os_thread_id, tls.cpu_id, is_hotpath });
+	//printf("Event - java_thread_id: %p - thread_id: %d - cpu_id: %d - is_hotpath: %d\n", jthread_id, thread_id, cpu_id, is_hotpath);
+ 	
+	if(cpu_id == -1) 
+		return;
+
+    	queue.try_push(CallTracerItem { current_time, jthread_id, thread_id, cpu_id, is_hotpath });
 }
 
 bool calltracer_consume(CallTracerItem& item) {
