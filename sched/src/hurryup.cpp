@@ -134,6 +134,10 @@ void hurryup_freqchange(void) {
 			if(changes[i][0] == 0) {
 				changes[i][1] = changes[i][0];
 				char freq[8] = "1000000";
+				write(fd[i], freq, strlen(freq));
+			}  else if (changes[i][0] == 4) {
+				changes[i][1] = changes[i][0];
+				char freq[8] = "2000000";
 				write(fd[i], freq, strlen(freq));			
 			}  else if (changes[i][0] == 5) {
 				changes[i][1] = changes[i][0];
@@ -226,6 +230,7 @@ void hurryup_tick() {
     for (auto& es_thread : es_threads) {
 	    // It entered at hot function but didn't change frequency yet
 	    if(es_thread.exec == 1) {
+		    changes[es_thread.coreId][0] = 4;
 		    // Check if dif is higher than 350 ms
 		    if(actual_time - es_thread.timestamp >= 300000000) {
 		    	    //std::cout << "Hot function event " << es_thread.coreId << std::endl;
