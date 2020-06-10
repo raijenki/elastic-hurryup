@@ -230,12 +230,12 @@ void hurryup_tick() {
     for (auto& es_thread : es_threads) {
 	    // It entered at hot function but didn't change frequency yet
 	    if(es_thread.exec == 1) {
-		    changes[es_thread.coreId][0] = 5;
+		    changes[es_thread.coreId][0] = 4;
 		    // Check if dif is higher than 350 ms
 		    if(actual_time - es_thread.timestamp >= 300000000) {
 		    	    //std::cout << "Hot function event " << es_thread.coreId << std::endl;
 			    es_thread.exec = 2; // So we don't have to change frequency again
-			    changes[es_thread.coreId][0] = 5;
+			    changes[es_thread.coreId][0] = 4;
 		    }
 	    }
 	    // Either not on hot function or left
