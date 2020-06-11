@@ -7,7 +7,7 @@ export SEARCH_DRIVER=Ziphian.java
 export TERMS_FILE=terms_ordered
 export RAMP_UP=30
 export RAMP_DOWN=30
-export STEADY_STATE=1200
+export STEADY_STATE=600
 export SCALE=4
 export AGENT_ID=1
 export HOST_IP=localhost
@@ -70,6 +70,7 @@ until $(curl --output /dev/null --silent --head --fail http://localhost:9200); d
 	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table >> /home/cc/elastic-hurryup/db/transtable_end.txt
 	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state >> /home/cc/elastic-hurryup/db/time_in_state_end.txt
 	sleep 3s
+	#consumption=$((energyEnd - energyStart))
 	#Output summary
 	#cat $FABAN_OUTPUT_DIR/1/summary.xml
 	sudo killall -p /usr/lib/jvm/java-8-openjdk-amd64/bin/java
