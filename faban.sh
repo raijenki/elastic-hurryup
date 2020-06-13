@@ -64,11 +64,21 @@ until $(curl --output /dev/null --silent --head --fail http://localhost:9200); d
 	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table >> /home/cc/elastic-hurryup/db/transtable_init.txt
 	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state >> /home/cc/elastic-hurryup/db/time_in_state_init.txt
 	cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj >> /home/cc/elastic-hurryup/db/energy.txt
+	
+	### FOR C-STTES
+	cat /sys/devices/system/cpu/cpu4/cpuidle/state*/time >> /home/cc/elastic-hurryup/db/c-state_time_init.txt
+	cat /sys/devices/system/cpu/cpu4/cpuidle/state*/usage >> /home/cc/elastic-hurryup/db/c-state_usage_init.txt
+
 	#START Master
 	numactl --cpunodebind=1 $JAVA_HOME/bin/java -classpath $CLASSPATH -Xmx$CLIENT_HEAP_SIZE -Xms$CLIENT_HEAP_SIZE -Djava.security.policy=$POLICY_PATH -Dbenchmark.config=$BENCHMARK_CONFIG com.sun.faban.driver.engine.MasterImpl
 	cat /sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj >> /home/cc/elastic-hurryup/db/energy.txt
 	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/trans_table >> /home/cc/elastic-hurryup/db/transtable_end.txt
 	cat /sys/devices/system/cpu/cpu0/cpufreq/stats/time_in_state >> /home/cc/elastic-hurryup/db/time_in_state_end.txt
+	cat /sys/devices/system/cpu/cpu4/cpuidle/state*/time >> /home/cc/elastic-hurryup/db/c-state_time_end.txt
+	cat /sys/devices/system/cpu/cpu4/cpuidle/state*/usage >> /home/cc/elastic-hurryup/db/c-state_usage_end.txt
+
+
+	
 	sleep 3s
 	#consumption=$((energyEnd - energyStart))
 	#Output summary
