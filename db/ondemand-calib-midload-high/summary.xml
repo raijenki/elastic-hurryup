@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../xslt/summary_report.xsl"?>
+<benchResults>
+    <benchSummary name="Sample Search Workload" version="0.3">
+        <runId>500</runId>
+        <startTime>Tue Jun 16 12:18:01 UTC 2020</startTime>
+        <endTime>Tue Jun 16 12:40:01 UTC 2020</endTime>
+        <metric unit="ops/sec">10.565</metric>
+        <passed>false</passed>
+    </benchSummary>
+    <driverSummary name="SearchDriver">
+        <metric unit="ops/sec">10.565</metric>
+        <startTime>Tue Jun 16 12:18:01 UTC 2020</startTime>
+        <endTime>Tue Jun 16 12:40:01 UTC 2020</endTime>
+        <totalOps unit="operations">12678</totalOps>
+        <users>12</users>
+        <rtXtps>11.9886</rtXtps>
+        <passed>false</passed>
+        <mix allowedDeviation="0.0000">
+            <operation name="GET">
+                <successes>12678</successes>
+                <failures>0</failures>
+                <mix>1.0000</mix>
+                <requiredMix>1.0000</requiredMix>
+                <passed>true</passed>
+            </operation>
+        </mix>
+        <responseTimes unit="seconds">
+            <operation name="GET" r90th="0.500">
+                <avg>0.936</avg>
+                <max>2.384</max>
+                <sd>0.405</sd>
+                <p90th>1.525</p90th>
+                <passed>false</passed>
+                <p99th>1.950</p99th>
+            </operation>
+        </responseTimes>
+        <delayTimes>
+            <operation name="GET" type="cycleTime">
+                <targetedAvg>1.000</targetedAvg>
+                <actualAvg>1.135</actualAvg>
+                <min>0.999</min>
+                <max>2.421</max>
+                <passed>false</passed>
+            </operation>
+        </delayTimes>
+    </driverSummary>
+</benchResults>

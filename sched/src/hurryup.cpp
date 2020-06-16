@@ -99,7 +99,7 @@ void hurryup_init() {
         while(!should_stop_scheduler.load(std::memory_order_relaxed))
         {
             using namespace std::chrono_literals;
-            std::this_thread::sleep_for(10ms);
+            std::this_thread::sleep_for(50ms);
             hurryup_tick();
         }
 
@@ -232,7 +232,7 @@ void hurryup_tick() {
 	    if(es_thread.exec == 1) {
 		    changes[es_thread.coreId][0] = 4;
 		    // Check if dif is higher than 350 ms
-		    if(actual_time - es_thread.timestamp >= 300000000) {
+		    if(actual_time - es_thread.timestamp >= 450000000) {
 		    	    //std::cout << "Hot function event " << es_thread.coreId << std::endl;
 			    es_thread.exec = 2; // So we don't have to change frequency again
 			    changes[es_thread.coreId][0] = 5;
