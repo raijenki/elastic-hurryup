@@ -8,4 +8,4 @@ The original experiments used a Intel Xeon Gold 6126 machine (Skylake Architectu
 The files 'install/server.sh' and 'install/client.sh' includes all the automated steps for installation. The 'install/config.sh' includes some pointers to necessary Linux's files. 
 
 ## Related Papers
-To be published.
+D. A. de Medeiros, D. das Mercês Amorim and V. Petrucci, "Profile-guided Frequency Scaling for Latency-Critical Search Workloads", 2021 IEEE/ACM 21st International Symposium on Cluster, Cloud and Internet Computing (CCGrid), 2021, pp. 304-313, doi: 10.1109/CCGrid51090.2021.00040.
