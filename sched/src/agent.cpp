@@ -1,5 +1,5 @@
 #include <jvmti.h>
-#include <jnif.hpp>
+#include <jvmtiprof/jvmtiprof.h>
 #include <cassert>
 #include <cstring>
 #include <atomic>
@@ -37,113 +37,32 @@ static const sigset_t sigprof_mask = [] {
 /// The CPU the next thread should be allocated into.
 static int next_cpu_id = 0;
 
-static void JNICALL OnClassFileLoad(
-    jvmtiEnv *jvmti_env, JNIEnv *jni_env, jclass class_being_redefined,
-    jobject loader, const char *name, jobject protection_domain,
-    jint class_data_len, const unsigned char *class_data,
-    jint *new_class_data_len, unsigned char **new_class_data)
+static jvmtiProfEnv* jvmtiprof;
+static jint hook_id;
+constexpr auto interesting_class_name = "org/elasticsearch/search/SearchService";
+constexpr auto interesting_method_name = "executeQueryPhase";
+constexpr auto interesting_method_signature = "(Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;)Lorg/elasticsearch/search/SearchPhaseResult;";
+
+void onEnterExecuteQueryPhase(
+    jvmtiProfEnv* jvmtiprof_env, jvmtiEnv* jvmti_env,
+    JNIEnv* jni_env, jthread thread, jint hook_id)
+
 {
-    constexpr auto interesting_class_name = "org/elasticsearch/search/SearchService";
-    constexpr auto interesting_method_name = "executeQueryPhase";
-
-    if(!name || strcmp(name, interesting_class_name))
-	return;
-
-    jnif::parser::ClassFileParser cf(class_data, class_data_len);
-
-    const auto enter_method_hook_name = "onEnterExecuteQueryPhase";
-    const auto leave_method_hook_name = "onLeaveExecuteQueryPhase";
-    const auto void_method_desc_name = "()V";
-
-    const auto enter_method_hook_index = cf.putUtf8(enter_method_hook_name);
-    const auto leave_method_hook_index = cf.putUtf8(leave_method_hook_name);
-    const auto void_method_desc_index = cf.putUtf8(void_method_desc_name);
-    const auto hook_method_attr = jnif::Method::PRIVATE | jnif::Method::STATIC |
-                                  jnif::Method::NATIVE |
-                                  jnif::Method::SYNTHETIC;
-
-    cf.addMethod(enter_method_hook_index, void_method_desc_index,
-                 hook_method_attr);
-    cf.addMethod(leave_method_hook_index, void_method_desc_index,
-                 hook_method_attr);
-
-    const auto enter_method_hook_ref = cf.addMethodRef(
-        cf.thisClassIndex, enter_method_hook_name, void_method_desc_name);
-    const auto leave_method_hook_ref = cf.addMethodRef(
-        cf.thisClassIndex, leave_method_hook_name, void_method_desc_name);
-
-    for(auto& method : cf.methods)
-    {
-	if(!strcmp(method.getName(), interesting_method_name))
-	{
-            // Possible Overloads
-            // (Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;Lorg/elasticsearch/action/ActionListener;)V
-            // (Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;)Lorg/elasticsearch/search/SearchPhaseResult;
-            // (Lorg/elasticsearch/search/internal/InternalScrollSearchRequest;Lorg/elasticsearch/action/search/SearchTask;Lorg/elasticsearch/action/ActionListener;)V
-            // (Lorg/elasticsearch/search/query/QuerySearchRequest;Lorg/elasticsearch/action/search/SearchTask;Lorg/elasticsearch/action/ActionListener;)V
-
-            if(strcmp(method.getDesc(), "(Lorg/elasticsearch/search/internal/ShardSearchRequest;Lorg/elasticsearch/action/search/SearchTask;)Lorg/elasticsearch/search/SearchPhaseResult;"))
-                continue;
-
-	    fprintf(stderr, "hurryup_jvmti: Instrumenting %s%s\n", method.getName(), method.getDesc());
-
-	    auto& il = method.instList();
-            il.addInvoke(jnif::Opcode::invokestatic, enter_method_hook_ref,
-                         *il.begin());
-
-	    for(auto* inst : il)
-	    {
-		if(inst->isExit())
-		{
-		    il.addInvoke(jnif::Opcode::invokestatic,
-                                 leave_method_hook_ref, inst);
-                }
-	    }
-        }
-    }
-
-    *new_class_data_len = cf.computeSize();
-    if(jvmti_env->Allocate(*new_class_data_len, new_class_data) != 0)
-    {
-	fprintf(stderr, "hurryup_jvmti: Failed to allocate new class data\n");
-	*new_class_data_len = 0;
-	*new_class_data = nullptr;
-	return;
-    }
-
-    cf.write(*new_class_data, *new_class_data_len);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase()
-{
+    //puts("ENTER2");
     //fprintf(stderr, "onEnterExecuteQueryPhase %d\n", tls_data().hotpath_enters);
     calltracer_addpush(true);
     //++tls_data().hotpath_enters;
 }
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase(JNIEnv *jni, jclass klass)
+void onLeaveExecuteQueryPhase(
+	jvmtiProfEnv* jvmtiprof_env, jvmtiEnv* jvmti_env,
+	JNIEnv* jni_env, jthread thread, jint hook_id)
 {
-    return JavaCritical_org_elasticsearch_search_SearchService_onEnterExecuteQueryPhase();
-}
 
-extern "C"
-JNIEXPORT void JNICALL
-JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase()
-{
+    //puts("LEAVE2");
     calltracer_addpush(false);
     //--tls_data().hotpath_enters;
     //fprintf(stderr, "onLeaveExecuteQueryPhase %d\n", tls_data().hotpath_enters);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase(JNIEnv *jni, jclass klass)
-{
-    return JavaCritical_org_elasticsearch_search_SearchService_onLeaveExecuteQueryPhase();
 }
 
 /// Called when a Java Thread starts.
@@ -259,6 +178,7 @@ JNIEXPORT jint JNICALL
 Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
 {
     jvmtiError err;
+    jvmtiProfError jvmtiprof_err;
 
     jvmtiEnv *jvmti;
     if(vm->GetEnv((void **)&jvmti, JVMTI_VERSION_1_0) != JNI_OK)
@@ -267,22 +187,16 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
         return 1;
     }
 
-    jvmtiCapabilities caps;
-    memset(&caps, 0, sizeof(caps));
-    caps.can_generate_all_class_hook_events = true;
-    if((err = jvmti->AddCapabilities(&caps)))
+    jvmtiprof_err = jvmtiProf_Create(vm, jvmti, &jvmtiprof, JVMTIPROF_VERSION);
+    if(jvmtiprof_err != JVMTIPROF_ERROR_NONE)
     {
-        fprintf(stderr, "hurryup_jvmti: Failed to add capabilities (%d)\n", err);
+        fprintf(stderr, "failed to create JVMTIPROF environment (error %d)\n",
+                jvmtiprof_err);
         return 1;
     }
 
     jvmtiEventCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
-
-    callbacks.ClassFileLoadHook = OnClassFileLoad;
-    jvmti->SetEventNotificationMode(JVMTI_ENABLE,
-                                    JVMTI_EVENT_CLASS_FILE_LOAD_HOOK,
-				    NULL);
 
     callbacks.ThreadStart = ThreadStart;
     jvmti->SetEventNotificationMode(JVMTI_ENABLE,
@@ -310,6 +224,56 @@ Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
         return 1;
     }
 
+    jvmtiProfCapabilities caps;
+    memset(&caps, 0, sizeof(caps));
+    caps.can_generate_specific_method_entry_events = true;
+    caps.can_generate_specific_method_exit_events = true;
+    jvmtiprof_err = jvmtiprof->AddCapabilities(&caps);
+    if(jvmtiprof_err != JVMTIPROF_ERROR_NONE)
+    {
+        fprintf(stderr, "failed to add hooking capability (%d)\n", jvmtiprof_err);
+	return 1; // TODO dispose
+    }
+
+    jvmtiProfEventCallbacks callbacks2;
+    memset(&callbacks2, 0, sizeof(callbacks2));
+    callbacks2.SpecificMethodEntry = onEnterExecuteQueryPhase;
+    callbacks2.SpecificMethodExit = onLeaveExecuteQueryPhase;
+
+    jvmtiprof_err = jvmtiprof->SetEventNotificationMode(
+            JVMTI_ENABLE, JVMTIPROF_EVENT_SPECIFIC_METHOD_ENTRY, NULL);
+    if(jvmtiprof_err != JVMTIPROF_ERROR_NONE)
+    {
+        fprintf(stderr, "failed to enable method entry event notifications (%d)\n", jvmtiprof_err);
+	return 1; // TODO dispose
+    }
+
+    jvmtiprof_err = jvmtiprof->SetEventNotificationMode(
+            JVMTI_ENABLE, JVMTIPROF_EVENT_SPECIFIC_METHOD_EXIT, NULL);
+    if(jvmtiprof_err != JVMTIPROF_ERROR_NONE)
+    {
+        fprintf(stderr, "failed to enable method exit event notifications (%d)\n", jvmtiprof_err);
+	return 1; // TODO dispose
+    }
+
+    jvmtiprof_err = jvmtiprof->SetEventCallbacks(&callbacks2, sizeof(callbacks2));
+    if(jvmtiprof_err != JVMTIPROF_ERROR_NONE)
+    {
+        fprintf(stderr, "failed to set event callbacks for method hook (%d)\n", jvmtiprof_err);
+	return 1; // TODO dispose
+    }
+
+    jvmtiprof_err = jvmtiprof->SetMethodEventFlag(
+	    interesting_class_name, interesting_method_name, interesting_method_signature,
+            (jvmtiProfMethodEventFlag)((int)JVMTIPROF_METHOD_EVENT_ENTRY | (int)JVMTIPROF_METHOD_EVENT_EXIT),
+            JVMTI_ENABLE,
+            &hook_id);
+    if(jvmtiprof_err != JVMTIPROF_ERROR_NONE)
+    {
+        fprintf(stderr, "failed to set method hook flags (%d)\n", jvmtiprof_err);
+	return 1; // TODO dispose
+    }
+
     std::atomic<uint64_t> u64_atomic;
     if(!u64_atomic.is_lock_free())
         fprintf(stderr, "hurryup_jvmti: aligned atomic_uint64_t is not lock free!!!\n");
@@ -333,5 +297,6 @@ Agent_OnUnload(JavaVM *vm)
     //calltracer_shutdown();
     vm_shutdown();
     tls_shutdown();
+    jvmtiprof->DisposeEnvironment();
     fprintf(stderr, "hurryup_jvmti: Agent has been unloaded\n");
 }
