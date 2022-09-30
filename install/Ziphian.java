@@ -222,7 +222,7 @@ public class SearchDriver {
         String[] p1 = resp.split(",");
         String[] p2 = p1[0].split(":");
         String lat = p2[1];
-	FileWriter fstreamIN = new FileWriter("/home/cc/elastic-hurryup/db/log.txt",true);
+	FileWriter fstreamIN = new FileWriter("/home/cc/elastic-hurryup/build/db/log.txt",true);
         BufferedWriter out = new BufferedWriter(fstreamIN);
 	Thread currentThread = Thread.currentThread();
 	String tid = Long.toString(currentThread.getId());
