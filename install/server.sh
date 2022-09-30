@@ -1,3 +1,4 @@
+set -e
 export es=localhost:9200
 export site=en.wikipedia.org
 export index=enwiki
@@ -7,16 +8,17 @@ export index=enwiki
 # Install JDK8 for compatibility issues
 sudo apt-get install -y openjdk-8-jdk numactl unzip
 
-# Download elasticsearc 6.5.4
-mkdir ../build/
-mkdir ../downloads/
+# Download elasticsearch 6.5.4
+mkdir -p ../build/
+mkdir -p ../downloads/
 cd ../downloads/
 wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.5.4.tar.gz 
 
 # Install and move
 tar xvf elasticsearch-6.5.4.tar.gz
 mv elasticsearch-6.5.4 ../build/server/
-mv elasticsearch ../build/server/bin/.
+cp ../install/elasticsearch ../build/server/bin/.
+cp ../install/elasticsearch.yml ../build/server/config/
 
 #Add plugins which will allow us to index Wikipedia onto Elasticsearch
 cd ../build/server/
@@ -49,9 +51,9 @@ sleep 10
 # Download English Wikipedia content (~30gb, may take some time)
 cd ../../downloads/
 wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2
-wget wget https://artifacts.elastic.co/downloads/logstash/logstash-6.1.1.zip
+wget https://artifacts.elastic.co/downloads/logstash/logstash-6.1.1.zip
 unzip logstash-6.1.1.zip
-bunzip2 -c enwiki-latest-pages-articles.xml.bz2 |  ./logstash-6.1.1/bin/logstash -f wikipedia.conf
+bunzip2 -c enwiki-latest-pages-articles.xml.bz2 |  ./logstash-6.1.1/bin/logstash -f ../install/wikipedia.conf
 
 #wget https://dumps.wikimedia.org/other/cirrussearch/current/enwiki-20200330-cirrussearch-content.json.gz 
 #mkdir chunks
