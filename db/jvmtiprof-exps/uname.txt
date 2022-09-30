@@ -1,0 +1,1 @@
+Linux denilson 5.4.0-124-generic #140-Ubuntu SMP Thu Aug 4 02:23:37 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
