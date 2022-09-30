@@ -50,6 +50,8 @@ echo "Print= $AGENTS"
 
 export CLASSPATH=$FABAN_HOME/lib/fabanagents.jar:$FABAN_HOME/lib/fabancommon.jar:$FABAN_HOME/lib/fabandriver.jar:$JAVA_HOME/lib/tools.jar:$FABAN_HOME/search/build/lib/search.jar
 
+sudo chmod -R a+r /sys/class/powercap/intel-rapl
+
 until $(curl --output /dev/null --silent --head --fail http://localhost:9200); do
 	    printf '.'
 	        sleep 5
